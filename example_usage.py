@@ -2,7 +2,7 @@
 Example usage of the TMD data synchronization function.
 """
 
-from sync_tmd_data import sync_tmd_data_to_db
+from main import sync_tmd_data_to_db
 import logging
 
 # Configure logging to see detailed output
