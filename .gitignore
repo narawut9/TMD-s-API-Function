@@ -1,0 +1,26 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+.env.*
+
+# Virtual environment
+venv/
+.venv/
+
+# VS Code settings
+.vscode/
+
+# Windows system files
+Thumbs.db
+
+# Test
+test_env.py
+
+# Optional: Data files
+data/
+*.csv
+*.json
