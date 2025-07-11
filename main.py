@@ -20,6 +20,7 @@ DB_CONFIG = {
     'password' : os.getenv("DB_PASS"),
     'port' : os.getenv("DB_PORT")
 }
+conn = None
 try:
     conn = psycopg2.connect(**DB_CONFIG)
 except psycopg2.Error as e:
@@ -33,8 +34,11 @@ def fetch_stations_data():
         station_data = response.json()
         return station_data
     
-    except(requests.RequestException, ValueError) as e :
-        print(e)
+    except requests.exceptions.RequestException as e: 
+        print(f"Error fetching station data from {station_url}: {e}")
+        return None
+    except ValueError as e :
+        print(f"Error decoding station data JSON from {station_url}: {e}")
         return None
 # weather
 def fetch_weather_data():
@@ -43,25 +47,28 @@ def fetch_weather_data():
         weather_data = response.json()
         return weather_data
     
-    except(requests.RequestException, ValueError) as error :
-        print(e)
+    except(requests.exceptions.RequestException) as e :
+        print(f"Error fetching weather data from {weather_url}: {e}")
+    except ValueError as e : 
+        print(f"Error decoding weather data JSON from {weather_url}: {e}")
         return None
 
 # ------------- check empty station_id -------------
 def check_empty_station_id(station_id):
+
     try:
         sql_query = str('''SELECT * FROM weather."tblWeather_station" where "station_id" = '{}';'''.format(station_id))
         cur = conn.cursor()
         cur.execute(sql_query)
         rows = cur.fetchall()
         if len(rows) <= 0:
-            return True
+            return True # empty
         else:
             return False
     except (Exception, psycopg2.DatabaseError) as error:
-        return str(error)
+        return str(error) # not empty
     
-# Get PK from tblWeather_station by station_id
+# ------------- Get PK from tblWeather_station by station_id -------------
 def get_weather_station_id_ByStationId(station_id):
 
     try:
@@ -74,9 +81,10 @@ def get_weather_station_id_ByStationId(station_id):
         else:
             return None
     except (Exception, psycopg2.DatabaseError) as error:
+        print(f"Database error in get_weather_station_id_ByStationId for station_id {station_id}: {error}")
         return str(error)    
 
-# Get PK(weather_station_id) from tblWeather_station by wmo_code
+# ------------- Get PK(weather_station_id) from tblWeather_station by wmo_code -------------
 def get_weather_station_id_ByWmoCode(wmo_code):
 
     try:
@@ -89,20 +97,21 @@ def get_weather_station_id_ByWmoCode(wmo_code):
         else:
             return None
     except (Exception, psycopg2.DatabaseError) as error:
+        print(f"Database error in get_weather_station_id_ByWmoCode for wmo_code {wmo_code}: {error}")
         return str(error)  
 
-# Load weather station data (TMD's API)
+# ------------- Load weather station data (TMD's API) ------------- 
 raw_stations = fetch_stations_data()
 
-# Insert data into database. (weather station)
+# Insert data into database. (weather station) 
 try:
     stations = raw_stations['Station']
 
-except NameError as e:
+except KeyError  as e: # กรณีคีย์ 'Station' ไม่มี
     stations = []
     print(e)
 
-# 
+# Loop insert from stations
 for i in range(0, len(stations)):
 
     try: station_id = str(stations[i]['StationID'])
@@ -144,13 +153,13 @@ for i in range(0, len(stations)):
     try: height_thermometer = float(stations[i]['HeightofThermometer'])
     except: height_thermometer = None
 
-# Configs Name, Datetime
+# ------------- Configs Name, Datetime -------------
 create_by = 'Narawut.T'
 update_by = 'Narawut.T'
 create_date = datetime.now()
 update_date = datetime.now()
 
-# True station_id is empty
+# True station_id is empty 
 # INSERT SQl query
 if check_empty_station_id(station_id):
         try:
@@ -197,7 +206,7 @@ else:
         except NameError as e:
             print(e)
 
-# Load weather today data (TMD's API)
+# -------------Load weather today data (TMD's API) -------------
 raw_weather = fetch_weather_data()
 
 # Insert data into database. (weather today)
@@ -248,7 +257,7 @@ for j in range(0, len(weather_daily)):
     try: rainfall = float(weather_daily[j]['Observation']['Rainfall'])
     except: rainfall = None
 
-# get weather_station_id  by wmo_code
+# ------------- get weather_station_id  by wmo_code -------------
 # Ture = Insert SQL query
 weather_station_id = get_weather_station_id_ByWmoCode(wmocode)
 if  weather_station_id != None:
@@ -268,9 +277,14 @@ if  weather_station_id != None:
         print(f"Complete to insert weather. (StationID: {weather_station_id}, DateTime: {create_date})")
     except Exception as e:
         print(e)
-    finally: 
-        cur.close()
+
 else:
     print(f"[Warning] Not Found weather_station_id: StationID = {station_id}, WmoCode = {wmocode}")
         
+if conn:
+    try:
+        conn.close()
+        print("Database connection closed successfully.")
+    except psycopg2.Error as e:
+        print(f"Error closing database connection: {e}")
 print("Completed to Load all data")
