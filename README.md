@@ -4,7 +4,7 @@ This project extracts weather station and current weather data from the Thai Met
 
 ---
 
-## 📌 Features
+## 📌Features
 
 - Extracts **station** and **weatherToday** data from TMD API  
 - Insert or Update logic for station data (`tblWeather_station`)  
@@ -32,7 +32,7 @@ Overall:
 ## 📂 Project Structure
 
 ```text
-root/
+TMD's API/
 ├── main.py         # Main ETL logic (Extract → Transform → Load)
 ├── .env            # API & DB credentials (excluded via .gitignore)
 ├── .gitignore      # Ignore sensitive and unnecessary files
@@ -43,10 +43,10 @@ root/
 
 ---
 
-## 🔄 ETL Flow Diagram
+## Flow Diagram
 
 ```mermaid
-flowchart TD
+flowchart 
     A[Start] --> B[Fetch Station Data from TMD API]
     B --> C{StationID exists in DB?}
     C -- No --> D[Insert New Station]

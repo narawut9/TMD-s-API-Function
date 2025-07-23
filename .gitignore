@@ -19,6 +19,7 @@ Thumbs.db
 
 # Test
 test_env.py
+test_try.py
 
 # Optional: Data files
 data/
