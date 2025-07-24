@@ -228,6 +228,7 @@ except KeyError  as e:
     print(e)
 
 # Processing(weather today)
+count_stations = 0
 for j in range(0, len(weather_daily)):
 
     try: station_id = str(weather_daily[j]['StationID'])
@@ -286,11 +287,15 @@ for j in range(0, len(weather_daily)):
             conn.commit()
             cur.close()
             print(f"Complete to insert weather. (StationID: {station_id}, DateTime: {create_date})")
-            print("============================")
+        
+            count_stations += 1
         except Exception as e:
             print(e)
     else:
         print(f"[Warning] Not Found weather_station_id: StationID = {station_id}, WmoCode = {wmocode}")
+
+print("ETL Completed")
+print(f"Total successful inserts: {count_stations}")
         
 if conn:
     try:
