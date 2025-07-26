@@ -1,7 +1,7 @@
 import requests
 import psycopg2
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os 
 
@@ -110,8 +110,8 @@ def get_weather_station_id_ByWmoCode(wmo_code):
 # ------------- Configs Name, Datetime -------------
 create_by = 'Narawut.T'
 update_by = 'Narawut.T'
-create_date = datetime.now()
-update_date = datetime.now()    
+create_date = datetime.now(timezone.utc)
+update_date = datetime.now(timezone.utc)  
 
 # ------------- Load weather station data (TMD's API) ------------- 
 raw_stations = fetch_stations_data()
@@ -182,7 +182,6 @@ for i in range(0, len(stations)):
                 conn.commit()
                 cur.close()
                 print(f"Complete to insert station. ({str(station_id)}), DateTime: {create_date})")
-                print("============================")
             except NameError as e:
                 print(e)
     # False UPDATE     
